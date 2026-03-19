@@ -360,9 +360,10 @@ function TranslatorApp() {
     return `${window.location.origin}?q=${encodeURIComponent(input.trim())}&t=${encodeURIComponent(output)}`;
   }
 
-  function handleShareLink() {
+  async function handleShareLink() {
     if (!output) return;
-    copyToClipboard(window.location.href);
+    const shortUrl = await getShortUrl();
+    copyToClipboard(shortUrl);
     setLinkCopied(true);
     trackEvent("share_link");
     setTimeout(() => setLinkCopied(false), 2500);
@@ -370,13 +371,20 @@ function TranslatorApp() {
 
   async function handleShareLinkedIn() {
     if (!output) return;
+    // Open window synchronously so the browser doesn't block the popup
+    const win = window.open("about:blank", "_blank", "width=600,height=700");
     try {
       const shortUrl = await getShortUrl();
       const postText = `${output}\n\n— Translated with ${shortUrl}`;
       const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(postText)}`;
-      window.open(linkedInUrl, "_blank", "noopener,noreferrer,width=600,height=700");
+      if (win) {
+        win.location.href = linkedInUrl;
+      } else {
+        window.location.href = linkedInUrl;
+      }
       trackEvent("share_linkedin");
     } catch (err) {
+      if (win) win.close();
       console.error("LinkedIn share failed:", err);
     }
   }
