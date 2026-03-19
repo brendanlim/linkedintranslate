@@ -406,30 +406,12 @@ function TranslatorApp() {
     return await encodeShareUrl(window.location.origin, input.trim(), output);
   }
 
-  async function handleShareLink() {
+  function handleShareLink() {
     if (!output) return;
-
-    // Use the current URL if we already have a short link, otherwise build a fallback
-    const currentPath = window.location.pathname;
-    const immediateUrl = currentPath.startsWith("/s/")
-      ? window.location.href
-      : `${window.location.origin}?q=${encodeURIComponent(input.trim())}&t=${encodeURIComponent(output)}`;
-
-    // Copy immediately (synchronous from user gesture — required on mobile)
-    copyToClipboard(immediateUrl);
+    copyToClipboard(window.location.href);
     setLinkCopied(true);
     trackEvent("share_link");
     setTimeout(() => setLinkCopied(false), 2500);
-
-    // Then try to get a short URL and re-copy it
-    try {
-      const shortUrl = await getShortUrl();
-      if (shortUrl !== immediateUrl) {
-        copyToClipboard(shortUrl);
-      }
-    } catch {
-      // Already copied the fallback URL, so this is fine
-    }
   }
 
   async function handleShareLinkedIn() {
