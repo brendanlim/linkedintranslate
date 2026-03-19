@@ -588,7 +588,7 @@ function TranslatorApp() {
       {/* Footer */}
       <div className="w-full py-6 mt-auto text-center">
         <p className="text-xs text-text-tertiary/50">
-          For entertainment purposes only. &copy; 2026 Brendan G. Lim
+          &copy; 2026 Brendan G. Lim
         </p>
       </div>
     </div>
