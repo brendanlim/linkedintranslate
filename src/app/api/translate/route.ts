@@ -33,25 +33,99 @@ Output: "I've spent the last quarter conducting a deep-dive into immersive digit
 Input: "I was banned from the office for eating everyone's lunch."
 Output: "I'm officially transitioning into a 'Work-From-Anywhere' model! 🌍 I've realized that my appetite for growth—and my commitment to exploring diverse resources—requires a more flexible environment. This shift allows me to optimize my personal fuel-cycle while respecting the boundaries of traditional corporate infrastructure. So excited for this solo-preneurial chapter! 🥗 #BoundarySetting #ResourceOptimization #NewBeginnings"`;
 
+const ALLOWED_ORIGINS = [
+  "https://linkedintranslate.com",
+  "https://www.linkedintranslate.com",
+  "http://localhost:3000",
+];
+
+// Rate limiting: IP -> { count, windowStart }
+const rateLimitMap = new Map<string, { count: number; windowStart: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX = 10; // 10 requests per minute per IP
+
 // In-memory cache: hash -> { translation, timestamp }
 const cache = new Map<string, { translation: string; timestamp: number }>();
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const MAX_CACHE_SIZE = 1000;
 
 function getCacheKey(text: string): string {
-  return crypto.createHash("sha256").update(text.trim().toLowerCase()).digest("hex");
+  return crypto
+    .createHash("sha256")
+    .update(text.trim().toLowerCase())
+    .digest("hex");
 }
 
 function sanitizeInput(text: string): string {
-  // Strip to plain text — no control characters except newlines
   return text
     .replace(/[^\P{C}\n]/gu, "")
     .trim()
-    .slice(0, 2000);
+    .slice(0, 300);
+}
+
+function getClientIp(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    rateLimitMap.set(ip, { count: 1, windowStart: now });
+    return false;
+  }
+
+  entry.count++;
+  return entry.count > RATE_LIMIT_MAX;
+}
+
+function isAllowedOrigin(request: NextRequest): boolean {
+  const origin = request.headers.get("origin");
+  const referer = request.headers.get("referer");
+
+  // Allow if origin matches
+  if (origin && ALLOWED_ORIGINS.some((o) => origin.startsWith(o))) {
+    return true;
+  }
+
+  // Allow if referer matches
+  if (referer && ALLOWED_ORIGINS.some((o) => referer.startsWith(o))) {
+    return true;
+  }
+
+  // In development, allow requests without origin (e.g. curl, Postman won't have it)
+  // But in production, require origin or referer
+  if (process.env.NODE_ENV === "development") {
+    return true;
+  }
+
+  return false;
 }
 
 export async function POST(request: NextRequest) {
   try {
+    // Origin check
+    if (!isAllowedOrigin(request)) {
+      return NextResponse.json(
+        { error: "Unauthorized." },
+        { status: 403 }
+      );
+    }
+
+    // Rate limit check
+    const ip = getClientIp(request);
+    if (isRateLimited(ip)) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const rawText = body?.text;
 
@@ -75,7 +149,10 @@ export async function POST(request: NextRequest) {
     const key = getCacheKey(text);
     const cached = cache.get(key);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      return NextResponse.json({ translation: cached.translation, cached: true });
+      return NextResponse.json({
+        translation: cached.translation,
+        cached: true,
+      });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
