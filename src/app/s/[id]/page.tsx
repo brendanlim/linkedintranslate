@@ -1,11 +1,14 @@
 import { Redis } from "@upstash/redis";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import ShareRedirect from "./redirect";
 
 const redis = Redis.fromEnv();
 const siteUrl = "https://linkedintranslate.com";
 
-async function getShareData(id: string): Promise<{ q: string; t: string } | null> {
+async function getShareData(
+  id: string
+): Promise<{ q: string; t: string } | null> {
   try {
     const data = await redis.get<string>(`share:${id}`);
     if (!data) return null;
@@ -25,8 +28,10 @@ export async function generateMetadata({
 
   if (!data) return {};
 
-  const truncatedInput = data.q.slice(0, 80) + (data.q.length > 80 ? "..." : "");
-  const truncatedOutput = data.t.slice(0, 150) + (data.t.length > 150 ? "..." : "");
+  const truncatedInput =
+    data.q.slice(0, 80) + (data.q.length > 80 ? "..." : "");
+  const truncatedOutput =
+    data.t.slice(0, 150) + (data.t.length > 150 ? "..." : "");
   const title = `"${truncatedInput}" → LinkedIn Translate`;
   const description = truncatedOutput;
   const ogUrl = `${siteUrl}/api/og?q=${encodeURIComponent(data.q)}&t=${encodeURIComponent(data.t)}`;
@@ -61,10 +66,7 @@ export default async function SharePage({
     redirect("/");
   }
 
-  // Redirect to home with the share data as compressed param
-  // The client will pick it up from the URL
-  const searchParams = new URLSearchParams();
-  searchParams.set("q", data.q);
-  searchParams.set("t", data.t);
-  redirect(`/?${searchParams.toString()}`);
+  // Render the page (so crawlers get the meta tags in the HTML),
+  // then redirect the browser client-side
+  return <ShareRedirect q={data.q} t={data.t} />;
 }
