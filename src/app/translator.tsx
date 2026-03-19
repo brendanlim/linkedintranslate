@@ -352,9 +352,38 @@ function TranslatorApp() {
     }
   }, [input, router]);
 
-  async function handleCopy() {
+  function copyToClipboard(text: string): boolean {
+    // Try modern API first
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).catch(() => {
+        fallbackCopy(text);
+      });
+      return true;
+    }
+    return fallbackCopy(text);
+  }
+
+  function fallbackCopy(text: string): boolean {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      return true;
+    } catch {
+      return false;
+    } finally {
+      document.body.removeChild(textarea);
+    }
+  }
+
+  function handleCopy() {
     if (!output) return;
-    await navigator.clipboard.writeText(output);
+    copyToClipboard(output);
     setCopied(true);
     trackEvent("copy_translation");
     setTimeout(() => setCopied(false), 2000);
@@ -379,14 +408,27 @@ function TranslatorApp() {
 
   async function handleShareLink() {
     if (!output) return;
+
+    // Use the current URL if we already have a short link, otherwise build a fallback
+    const currentPath = window.location.pathname;
+    const immediateUrl = currentPath.startsWith("/s/")
+      ? window.location.href
+      : `${window.location.origin}?q=${encodeURIComponent(input.trim())}&t=${encodeURIComponent(output)}`;
+
+    // Copy immediately (synchronous from user gesture — required on mobile)
+    copyToClipboard(immediateUrl);
+    setLinkCopied(true);
+    trackEvent("share_link");
+    setTimeout(() => setLinkCopied(false), 2500);
+
+    // Then try to get a short URL and re-copy it
     try {
-      const shareUrl = await getShortUrl();
-      await navigator.clipboard.writeText(shareUrl);
-      setLinkCopied(true);
-      trackEvent("share_link");
-      setTimeout(() => setLinkCopied(false), 2500);
-    } catch (err) {
-      console.error("Share link failed:", err);
+      const shortUrl = await getShortUrl();
+      if (shortUrl !== immediateUrl) {
+        copyToClipboard(shortUrl);
+      }
+    } catch {
+      // Already copied the fallback URL, so this is fine
     }
   }
 
