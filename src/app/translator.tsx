@@ -284,11 +284,7 @@ function TranslatorApp() {
 
   function handleShareLinkedIn() {
     if (!output) return;
-    const params = new URLSearchParams();
-    params.set("q", input.trim());
-    params.set("t", output);
-    const shareUrl = `${window.location.origin}?${params.toString()}`;
-    const postText = `${output}\n\nTranslated with linkedintranslate.com\n${shareUrl}`;
+    const postText = `${output}\n\n— Translated with linkedintranslate.com`;
     const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(postText)}`;
     window.open(linkedInUrl, "_blank", "noopener,noreferrer,width=600,height=700");
     trackEvent("share_linkedin");
