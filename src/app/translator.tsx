@@ -386,7 +386,9 @@ function TranslatorApp({ trending = [] }: { trending?: TrendingTranslation[] }) 
   async function handleShareLink() {
     if (!output) return;
     const shortUrl = await getShortUrl();
-    copyToClipboard(shortUrl);
+    // Use fallbackCopy because the async gap from getShortUrl()
+    // loses the user gesture needed for navigator.clipboard.writeText
+    fallbackCopy(shortUrl);
     setLinkCopied(true);
     trackEvent("share_link");
     trackEngagement("share_link");
