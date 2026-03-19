@@ -14,42 +14,6 @@ function trackEvent(eventName: string, params?: Record<string, string>) {
   gtag("event", eventName, params);
 }
 
-// ── URL compression: encode input+output into a compact base64 string ──
-
-async function encodeShareUrl(origin: string, q: string, t: string): Promise<string> {
-  const json = JSON.stringify({ q, t });
-  const bytes = new TextEncoder().encode(json);
-  const cs = new CompressionStream("deflate-raw");
-  const writer = cs.writable.getWriter();
-  writer.write(bytes);
-  writer.close();
-  const buf = await new Response(cs.readable).arrayBuffer();
-  const compressed = new Uint8Array(buf);
-  let b64 = btoa(String.fromCharCode(...compressed));
-  b64 = b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  return `${origin}?s=${b64}`;
-}
-
-async function decodeShareParam(s: string): Promise<{ q: string; t: string } | null> {
-  try {
-    // Restore standard base64
-    let b64 = s.replace(/-/g, "+").replace(/_/g, "/");
-    while (b64.length % 4) b64 += "=";
-    const raw = atob(b64);
-    const bytes = Uint8Array.from(raw, (c) => c.charCodeAt(0));
-    const ds = new DecompressionStream("deflate-raw");
-    const writer = ds.writable.getWriter();
-    writer.write(bytes);
-    writer.close();
-    const buf = await new Response(ds.readable).arrayBuffer();
-    const json = new TextDecoder().decode(buf);
-    const data = JSON.parse(json);
-    if (data.q && data.t) return data;
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 function SunIcon() {
   return (
@@ -284,25 +248,14 @@ function TranslatorApp() {
   }
 
   useEffect(() => {
-    // Support both legacy ?q=&t= and new compressed ?s= format
-    const s = searchParams.get("s");
-    const legacyQ = searchParams.get("q");
-    const legacyT = searchParams.get("t");
+    // ?s= is decoded server-side and redirected to ?q=&t=
+    const q = searchParams.get("q");
+    const t = searchParams.get("t");
 
-    if (s) {
-      decodeShareParam(s).then((data) => {
-        if (data) {
-          setInput(data.q);
-          setOutput(data.t);
-          trackEvent("shared_link_arrival", { content_length: data.t.length.toString() });
-        }
-      });
-    } else if (legacyQ) {
-      setInput(legacyQ);
-      if (legacyT) {
-        setOutput(legacyT);
-        trackEvent("shared_link_arrival", { content_length: legacyT.length.toString() });
-      }
+    if (q) setInput(q);
+    if (t) {
+      setOutput(t);
+      trackEvent("shared_link_arrival", { content_length: t.length.toString() });
     }
   }, [searchParams]);
 
@@ -403,7 +356,8 @@ function TranslatorApp() {
     } catch {
       // Fall back to compressed URL
     }
-    return await encodeShareUrl(window.location.origin, input.trim(), output);
+    // Fallback to simple query params
+    return `${window.location.origin}?q=${encodeURIComponent(input.trim())}&t=${encodeURIComponent(output)}`;
   }
 
   function handleShareLink() {

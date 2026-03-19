@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Readable } from "stream";
 import { createInflateRaw } from "zlib";
+import { redirect } from "next/navigation";
 import Translator from "./translator";
 
 const siteUrl = "https://linkedintranslate.com";
@@ -45,7 +46,6 @@ export async function generateMetadata({
   let q = params.q || "";
   let t = params.t || "";
 
-  // Decode compressed share param
   if (params.s) {
     const decoded = await decodeShareParam(params.s);
     if (decoded) {
@@ -81,6 +81,23 @@ export async function generateMetadata({
   return {};
 }
 
-export default function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; t?: string; s?: string }>;
+}) {
+  const params = await searchParams;
+
+  // If ?s= param exists, decode server-side and redirect to ?q=&t=
+  if (params.s) {
+    const decoded = await decodeShareParam(params.s);
+    if (decoded) {
+      const newParams = new URLSearchParams();
+      newParams.set("q", decoded.q);
+      newParams.set("t", decoded.t);
+      redirect(`/?${newParams.toString()}`);
+    }
+  }
+
   return <Translator />;
 }
