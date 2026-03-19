@@ -1,6 +1,9 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Redis } from "@upstash/redis";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+
+const redis = Redis.fromEnv();
 
 const SYSTEM_INSTRUCTION = `You are "The Professional Spin-Doctor." You translate honest confessions into LinkedIn posts that tell a STORY.
 
@@ -112,10 +115,7 @@ const rateLimitMap = new Map<string, { count: number; windowStart: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX = 10; // 10 requests per minute per IP
 
-// In-memory cache: hash -> { translation, timestamp }
-const cache = new Map<string, { translation: string; timestamp: number }>();
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-const MAX_CACHE_SIZE = 1000;
+const CACHE_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
 
 function getCacheKey(text: string): string {
   return crypto
@@ -213,14 +213,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check cache
-    const key = getCacheKey(text);
-    const cached = cache.get(key);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      return NextResponse.json({
-        translation: cached.translation,
-        cached: true,
-      });
+    // Check Redis cache
+    const key = `translate:${getCacheKey(text)}`;
+    try {
+      const cached = await redis.get<string>(key);
+      if (cached) {
+        return NextResponse.json({
+          translation: cached,
+          cached: true,
+        });
+      }
+    } catch {
+      // Redis down — continue to Gemini
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -240,12 +244,12 @@ export async function POST(request: NextRequest) {
     const result = await model.generateContent(text);
     const translation = result.response.text();
 
-    // Store in cache (evict oldest if full)
-    if (cache.size >= MAX_CACHE_SIZE) {
-      const oldest = cache.keys().next().value;
-      if (oldest) cache.delete(oldest);
+    // Store in Redis cache (30 day TTL)
+    try {
+      await redis.set(key, translation, { ex: CACHE_TTL_SECONDS });
+    } catch {
+      // Redis down — still return the translation
     }
-    cache.set(key, { translation, timestamp: Date.now() });
 
     return NextResponse.json({ translation });
   } catch (error) {
