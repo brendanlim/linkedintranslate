@@ -51,7 +51,7 @@ export const metadata: Metadata = {
       "Translate your career catastrophes into perfectly polished LinkedIn posts. Free AI-powered corporate jargon translator.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/api/og",
         width: 1200,
         height: 630,
         alt: "LinkedIn Translate — Turn honest truths into LinkedIn gold",
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     title: "LinkedIn Translate — I'm Thrilled to Share...",
     description:
       "Translate your career catastrophes into perfectly polished LinkedIn posts.",
-    images: ["/og-image.png"],
+    images: ["/api/og"],
     creator: "@brendanlim",
   },
   robots: {
