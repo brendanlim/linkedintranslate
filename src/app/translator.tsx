@@ -374,25 +374,33 @@ function TranslatorApp() {
     } catch {
       // Fall back to compressed URL
     }
-    return encodeShareUrl(window.location.origin, input.trim(), output);
+    return await encodeShareUrl(window.location.origin, input.trim(), output);
   }
 
   async function handleShareLink() {
     if (!output) return;
-    const shareUrl = await getShortUrl();
-    await navigator.clipboard.writeText(shareUrl);
-    setLinkCopied(true);
-    trackEvent("share_link");
-    setTimeout(() => setLinkCopied(false), 2500);
+    try {
+      const shareUrl = await getShortUrl();
+      await navigator.clipboard.writeText(shareUrl);
+      setLinkCopied(true);
+      trackEvent("share_link");
+      setTimeout(() => setLinkCopied(false), 2500);
+    } catch (err) {
+      console.error("Share link failed:", err);
+    }
   }
 
   async function handleShareLinkedIn() {
     if (!output) return;
-    const shortUrl = await getShortUrl();
-    const postText = `${output}\n\n— Translated with ${shortUrl}`;
-    const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(postText)}`;
-    window.open(linkedInUrl, "_blank", "noopener,noreferrer,width=600,height=700");
-    trackEvent("share_linkedin");
+    try {
+      const shortUrl = await getShortUrl();
+      const postText = `${output}\n\n— Translated with ${shortUrl}`;
+      const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(postText)}`;
+      window.open(linkedInUrl, "_blank", "noopener,noreferrer,width=600,height=700");
+      trackEvent("share_linkedin");
+    } catch (err) {
+      console.error("LinkedIn share failed:", err);
+    }
   }
 
   const charPercent = Math.min((input.length / MAX_LENGTH) * 100, 100);
