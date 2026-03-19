@@ -325,11 +325,20 @@ function TranslatorApp() {
       setOutput(data.translation);
       trackEvent("translate", { input_length: trimmed.length.toString() });
 
-      // Update URL with compressed share param
-      encodeShareUrl(window.location.origin, trimmed, data.translation).then((url) => {
-        const shortParam = new URL(url).search;
-        router.replace(shortParam, { scroll: false });
-      });
+      // Update URL with short link
+      try {
+        const res = await fetch("/api/share", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ q: trimmed, t: data.translation }),
+        });
+        const shareData = await res.json();
+        if (shareData.id) {
+          window.history.replaceState(null, "", `/s/${shareData.id}`);
+        }
+      } catch {
+        // Silent fail — URL just won't update
+      }
     } catch {
       setError("Network error. Please check your connection.");
     } finally {
