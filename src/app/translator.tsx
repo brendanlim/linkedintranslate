@@ -343,7 +343,7 @@ function TranslatorApp() {
   const isAtLimit = input.length >= MAX_LENGTH;
 
   return (
-    <div className="relative z-10 flex flex-col min-h-screen items-center justify-center px-5">
+    <div className="relative z-10 flex flex-col min-h-screen items-center pt-[12vh] px-5">
       {/* Theme toggle — top right */}
       <button
         onClick={toggleTheme}
@@ -542,13 +542,10 @@ function TranslatorApp() {
         </div>
       )}
 
-      {/* Footer — pinned to bottom */}
-      <div className="absolute bottom-0 left-0 right-0 py-4 text-center flex flex-col gap-1">
+      {/* Footer */}
+      <div className="w-full py-6 mt-auto text-center">
         <p className="text-xs text-text-tertiary/50">
-          For entertainment purposes only.
-        </p>
-        <p className="text-xs text-text-tertiary/40">
-          &copy; 2026 Brendan G. Lim
+          For entertainment purposes only. &copy; 2026 Brendan G. Lim
         </p>
       </div>
     </div>
