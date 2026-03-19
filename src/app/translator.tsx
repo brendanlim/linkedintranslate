@@ -512,32 +512,30 @@ function TranslatorApp({ trending = [] }: { trending?: TrendingTranslation[] }) 
           </div>
         </div>
 
-        {/* Suggestion chips — trending translations or random examples */}
-        {!output && !loading && (
+        {/* Suggestion chips — trending in zero state, random examples otherwise */}
+        {!loading && (
           <div className="mt-5 flex flex-wrap justify-center gap-2 max-w-2xl">
-            {trending.length > 0 ? (
-              <>
-                {trending.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setInput(item.q);
-                      setOutput(item.t);
-                      window.history.replaceState(null, "", `/s/${item.id}`);
-                      trackEvent("trending_chip", { id: item.id });
-                    }}
-                    className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200 max-w-[calc(50%-4px)] truncate"
-                  >
-                    {item.q}
-                  </button>
-                ))}
-              </>
+            {!output && trending.length > 0 ? (
+              trending.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setInput(item.q);
+                    setOutput(item.t);
+                    window.history.replaceState(null, "", `/s/${item.id}`);
+                    trackEvent("trending_chip", { id: item.id });
+                  }}
+                  className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200 max-w-[calc(50%-4px)] truncate"
+                >
+                  {item.q}
+                </button>
+              ))
             ) : (
               <>
                 {examples.map((example) => (
                   <button
                     key={example}
-                    onClick={() => { setInput(example); trackEvent("suggestion_chip", { example }); }}
+                    onClick={() => { setInput(example); setOutput(""); trackEvent("suggestion_chip", { example }); }}
                     className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200 max-w-[calc(50%-4px)] truncate"
                   >
                     {example}
@@ -638,34 +636,6 @@ function TranslatorApp({ trending = [] }: { trending?: TrendingTranslation[] }) 
               )}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Random example chips — shown after a translation so users can keep going */}
-      {output && !loading && (
-        <div className="w-full max-w-2xl mt-5 flex flex-wrap justify-center gap-2">
-          {examples.map((example) => (
-            <button
-              key={example}
-              onClick={() => { setInput(example); setOutput(""); trackEvent("suggestion_chip", { example }); }}
-              className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200 max-w-[calc(50%-4px)] truncate"
-            >
-              {example}
-            </button>
-          ))}
-          <button
-            onClick={shuffleExamples}
-            className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200"
-            title="More examples"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="16 3 21 3 21 8" />
-              <line x1="4" y1="20" x2="21" y2="3" />
-              <polyline points="21 16 21 21 16 21" />
-              <line x1="15" y1="15" x2="21" y2="21" />
-              <line x1="4" y1="4" x2="9" y2="9" />
-            </svg>
-          </button>
         </div>
       )}
 
