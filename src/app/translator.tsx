@@ -278,6 +278,22 @@ function TranslatorApp({ trending = [] }: { trending?: TrendingTranslation[] }) 
     if (t) {
       setOutput(t);
       trackEvent("shared_link_arrival", { content_length: t.length.toString() });
+
+      // Create a share entry so the URL becomes /s/{id} and engagement tracking works
+      if (q) {
+        fetch("/api/share", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ q: q.trim(), t }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.id) {
+              window.history.replaceState(null, "", `/s/${data.id}`);
+            }
+          })
+          .catch(() => {});
+      }
     }
   }, [searchParams]);
 
