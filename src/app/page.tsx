@@ -58,7 +58,7 @@ export async function generateMetadata({
   if (q && t) {
     const truncatedInput = q.slice(0, 80) + (q.length > 80 ? "..." : "");
     const truncatedOutput = t.slice(0, 150) + (t.length > 150 ? "..." : "");
-    const title = `"${truncatedInput}" → LinkedIn Translate`;
+    const title = `"${truncatedInput}" translated`;
     const description = truncatedOutput;
     const ogUrl = `${siteUrl}/api/og?q=${encodeURIComponent(q)}&t=${encodeURIComponent(t)}`;
 
