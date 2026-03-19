@@ -451,7 +451,7 @@ function TranslatorApp({ trending = [] }: { trending?: TrendingTranslation[] }) 
       <div className="flex flex-col items-center mb-8">
         <a href="/" className="flex items-center gap-3 mb-2 no-underline">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center">
-            <span className="text-white font-bold text-sm tracking-tight">Li</span>
+            <span className="text-white font-bold text-sm tracking-tight">Lt</span>
           </div>
           <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl text-text tracking-tight">
             LinkedIn Translate

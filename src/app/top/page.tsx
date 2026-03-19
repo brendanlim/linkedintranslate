@@ -68,7 +68,7 @@ export default async function TopPage() {
         <div className="mb-8">
           <a href="/" className="flex items-center gap-2.5 mb-4 no-underline">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center">
-              <span className="text-white font-bold text-xs tracking-tight">Li</span>
+              <span className="text-white font-bold text-xs tracking-tight">Lt</span>
             </div>
             <span className="font-[family-name:var(--font-display)] text-lg text-text-secondary">
               LinkedIn Translate
