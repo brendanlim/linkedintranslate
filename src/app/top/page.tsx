@@ -64,47 +64,53 @@ export default async function TopPage() {
 
   return (
     <div className="min-h-screen bg-bg text-text">
-      <div className="max-w-4xl mx-auto px-5 py-12">
-        <div className="mb-10">
-          <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl tracking-tight mb-2">
+      <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
+        <div className="mb-8">
+          <a href="/" className="flex items-center gap-2.5 mb-4 no-underline">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center">
+              <span className="text-white font-bold text-xs tracking-tight">Li</span>
+            </div>
+            <span className="font-[family-name:var(--font-display)] text-lg text-text-secondary">
+              LinkedIn Translate
+            </span>
+          </a>
+          <h1 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl tracking-tight mb-1">
             Top Translations
           </h1>
           <p className="text-text-tertiary text-sm">
-            Most viral translations by engagement score
+            Most viral translations by engagement
           </p>
         </div>
 
         {entries.length === 0 ? (
           <p className="text-text-tertiary">No translations tracked yet.</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {entries.map((entry, i) => (
               <a
                 key={entry.id}
                 href={`/s/${entry.id}`}
-                className="block rounded-xl bg-bg-card border border-border p-5 hover:border-accent/40 transition-colors"
+                className="block rounded-xl bg-bg-card border border-border p-4 hover:border-accent/40 transition-colors"
               >
-                <div className="flex items-start gap-4">
-                  <span className="text-2xl font-bold text-text-tertiary w-8 shrink-0 text-right tabular-nums">
-                    {i + 1}
+                <div className="flex items-baseline gap-3 mb-2">
+                  <span className="text-lg font-bold text-text-tertiary tabular-nums shrink-0">
+                    {i + 1}.
                   </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-text-tertiary mb-1 truncate">
-                      &ldquo;{entry.q}&rdquo;
-                    </p>
-                    <p className="text-text line-clamp-3 text-sm leading-relaxed whitespace-pre-wrap">
-                      {entry.t}
-                    </p>
-                    <div className="flex items-center gap-4 mt-3 text-xs text-text-tertiary">
-                      <span title="Engagement score">
-                        Score: {entry.score}
-                      </span>
-                      <span>{entry.views.toLocaleString()} views</span>
-                      <span>{entry.engagement.copy} copies</span>
-                      <span>{entry.engagement.share_link} links</span>
-                      <span>{entry.engagement.share_linkedin} LinkedIn posts</span>
-                    </div>
-                  </div>
+                  <p className="text-sm text-text-secondary font-medium line-clamp-2">
+                    &ldquo;{entry.q}&rdquo;
+                  </p>
+                </div>
+                <p className="text-text line-clamp-3 text-sm leading-relaxed whitespace-pre-wrap mb-3">
+                  {entry.t}
+                </p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
+                  <span>{entry.views.toLocaleString()} views</span>
+                  <span className="hidden sm:inline">&middot;</span>
+                  <span>{entry.engagement.copy} copies</span>
+                  <span className="hidden sm:inline">&middot;</span>
+                  <span>{entry.engagement.share_link} links</span>
+                  <span className="hidden sm:inline">&middot;</span>
+                  <span>{entry.engagement.share_linkedin} posts</span>
                 </div>
               </a>
             ))}
