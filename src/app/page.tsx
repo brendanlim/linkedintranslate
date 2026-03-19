@@ -3,12 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-const PLACEHOLDER_EXAMPLES = [
-  "I got fired for falling asleep during a board meeting...",
-  "I accidentally replied-all with a meme about my boss...",
-  "I've been pretending to work from home for 6 months...",
-  "I got caught padding my resume with fake credentials...",
-];
+const DEFAULT_PLACEHOLDER = "Tell us what really happened...";
 
 function SwapIcon() {
   return (
@@ -64,9 +59,6 @@ function TranslatorApp() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [placeholder] = useState(
-    () => PLACEHOLDER_EXAMPLES[Math.floor(Math.random() * PLACEHOLDER_EXAMPLES.length)]
-  );
 
   // Load shared translation from URL params on mount
   useEffect(() => {
@@ -206,7 +198,7 @@ function TranslatorApp() {
                     handleTranslate();
                   }
                 }}
-                placeholder={placeholder}
+                placeholder={DEFAULT_PLACEHOLDER}
                 className="w-full h-full min-h-[200px] lg:min-h-[300px] resize-none text-text text-base leading-relaxed bg-transparent placeholder:text-text-secondary/50"
                 maxLength={2000}
               />
