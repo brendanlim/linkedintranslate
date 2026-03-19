@@ -1,9 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { Redis } from "@upstash/redis";
+import { redis } from "@/lib/redis";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-
-const redis = Redis.fromEnv();
 
 const SYSTEM_INSTRUCTION = `You are "The Professional Spin-Doctor." You translate honest confessions into LinkedIn posts that tell a STORY.
 

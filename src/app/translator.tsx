@@ -14,6 +14,22 @@ function trackEvent(eventName: string, params?: Record<string, string>) {
   gtag("event", eventName, params);
 }
 
+function getCurrentShareId(): string | null {
+  if (typeof window === "undefined") return null;
+  const match = window.location.pathname.match(/^\/s\/([a-zA-Z0-9_-]+)$/);
+  return match ? match[1] : null;
+}
+
+function trackEngagement(action: string) {
+  const id = getCurrentShareId();
+  if (!id) return;
+  fetch("/api/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, action }),
+  }).catch(() => {});
+}
+
 
 function SunIcon() {
   return (
@@ -339,6 +355,7 @@ function TranslatorApp() {
     copyToClipboard(output);
     setCopied(true);
     trackEvent("copy_translation");
+    trackEngagement("copy");
     setTimeout(() => setCopied(false), 2000);
   }
 
@@ -366,6 +383,7 @@ function TranslatorApp() {
     copyToClipboard(shortUrl);
     setLinkCopied(true);
     trackEvent("share_link");
+    trackEngagement("share_link");
     setTimeout(() => setLinkCopied(false), 2500);
   }
 
@@ -383,6 +401,7 @@ function TranslatorApp() {
         window.location.href = linkedInUrl;
       }
       trackEvent("share_linkedin");
+      trackEngagement("share_linkedin");
     } catch (err) {
       if (win) win.close();
       console.error("LinkedIn share failed:", err);

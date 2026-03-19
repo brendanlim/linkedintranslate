@@ -1,9 +1,7 @@
-import { Redis } from "@upstash/redis";
+import { redis } from "@/lib/redis";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import ShareRedirect from "./redirect";
-
-const redis = Redis.fromEnv();
 const siteUrl = "https://linkedintranslate.com";
 
 function cleanText(text: string): string {
@@ -72,7 +70,9 @@ export default async function SharePage({
     redirect("/");
   }
 
-  // Render the page (so crawlers get the meta tags in the HTML),
-  // then redirect the browser client-side
+  // Track view + update leaderboard (fire-and-forget)
+  redis.incr(`views:${id}`).catch(() => {});
+  redis.zincrby("leaderboard", 1, id).catch(() => {});
+
   return <ShareRedirect q={data.q} t={data.t} />;
 }

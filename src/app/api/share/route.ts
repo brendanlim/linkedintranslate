@@ -1,8 +1,6 @@
-import { Redis } from "@upstash/redis";
+import { redis } from "@/lib/redis";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-
-const redis = Redis.fromEnv();
 
 function generateId(): string {
   return crypto.randomBytes(5).toString("base64url").slice(0, 7);
