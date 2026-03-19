@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Readable } from "stream";
 import { createInflateRaw } from "zlib";
 import { redirect } from "next/navigation";
+import { redis } from "@/lib/redis";
 import Translator from "./translator";
 
 const siteUrl = "https://linkedintranslate.com";
@@ -99,5 +100,43 @@ export default async function Home({
     }
   }
 
-  return <Translator />;
+  // Fetch top trending translations for the zero state
+  const trending = await getTopTranslations();
+
+  return <Translator trending={trending} />;
+}
+
+async function getTopTranslations(): Promise<
+  { id: string; q: string; t: string }[]
+> {
+  try {
+    const raw = await redis.zrange("leaderboard", 0, 9, {
+      rev: true,
+      withScores: true,
+    });
+
+    const ids: string[] = [];
+    for (let i = 0; i < raw.length; i += 2) {
+      ids.push(raw[i] as string);
+    }
+
+    if (ids.length === 0) return [];
+
+    const pipe = redis.pipeline();
+    for (const id of ids) {
+      pipe.get(`share:${id}`);
+    }
+    const results = await pipe.exec();
+
+    const entries: { id: string; q: string; t: string }[] = [];
+    for (let i = 0; i < ids.length; i++) {
+      const data = results[i] as { q: string; t: string } | null;
+      if (data?.q && data?.t) {
+        entries.push({ id: ids[i], q: data.q, t: data.t });
+      }
+    }
+    return entries;
+  } catch {
+    return [];
+  }
 }

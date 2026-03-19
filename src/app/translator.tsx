@@ -213,7 +213,13 @@ const ALL_EXAMPLES = [
   "My retirement plan is hoping something goes viral",
 ];
 
-function TranslatorApp() {
+export interface TrendingTranslation {
+  id: string;
+  q: string;
+  t: string;
+}
+
+function TranslatorApp({ trending = [] }: { trending?: TrendingTranslation[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [input, setInput] = useState("");
@@ -506,31 +512,54 @@ function TranslatorApp() {
           </div>
         </div>
 
-        {/* Example chips — 2x2 grid + shuffle inline */}
-        <div className="mt-5 flex flex-wrap justify-center gap-2 max-w-2xl">
-          {examples.map((example) => (
-            <button
-              key={example}
-              onClick={() => { setInput(example); trackEvent("suggestion_chip", { example }); }}
-              className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200 max-w-[calc(50%-4px)] truncate"
-            >
-              {example}
-            </button>
-          ))}
-          <button
-            onClick={shuffleExamples}
-            className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200"
-            title="More examples"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="16 3 21 3 21 8" />
-              <line x1="4" y1="20" x2="21" y2="3" />
-              <polyline points="21 16 21 21 16 21" />
-              <line x1="15" y1="15" x2="21" y2="21" />
-              <line x1="4" y1="4" x2="9" y2="9" />
-            </svg>
-          </button>
-        </div>
+        {/* Suggestion chips — trending translations or random examples */}
+        {!output && !loading && (
+          <div className="mt-5 flex flex-wrap justify-center gap-2 max-w-2xl">
+            {trending.length > 0 ? (
+              <>
+                {trending.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setInput(item.q);
+                      setOutput(item.t);
+                      window.history.replaceState(null, "", `/s/${item.id}`);
+                      trackEvent("trending_chip", { id: item.id });
+                    }}
+                    className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200 max-w-[calc(50%-4px)] truncate"
+                  >
+                    {item.q}
+                  </button>
+                ))}
+              </>
+            ) : (
+              <>
+                {examples.map((example) => (
+                  <button
+                    key={example}
+                    onClick={() => { setInput(example); trackEvent("suggestion_chip", { example }); }}
+                    className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200 max-w-[calc(50%-4px)] truncate"
+                  >
+                    {example}
+                  </button>
+                ))}
+                <button
+                  onClick={shuffleExamples}
+                  className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200"
+                  title="More examples"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="16 3 21 3 21 8" />
+                    <line x1="4" y1="20" x2="21" y2="3" />
+                    <polyline points="21 16 21 21 16 21" />
+                    <line x1="15" y1="15" x2="21" y2="21" />
+                    <line x1="4" y1="4" x2="9" y2="9" />
+                  </svg>
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Output — slides in below when there's a result */}
@@ -622,10 +651,10 @@ function TranslatorApp() {
   );
 }
 
-export default function Translator() {
+export default function Translator({ trending = [] }: { trending?: TrendingTranslation[] }) {
   return (
     <Suspense>
-      <TranslatorApp />
+      <TranslatorApp trending={trending} />
     </Suspense>
   );
 }
