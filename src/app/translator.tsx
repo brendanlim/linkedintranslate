@@ -658,9 +658,12 @@ function TranslatorApp({ trending = [] }: { trending?: TrendingTranslation[] }) 
       )}
 
       {/* Footer */}
-      <div className="w-full py-6 mt-auto text-center">
+      <div className="w-full py-6 mt-auto text-center space-y-1">
         <p className="text-xs text-text-tertiary/50">
           &copy; 2026 Brendan G. Lim
+        </p>
+        <p className="text-[10px] text-text-tertiary/30">
+          Not affiliated with or endorsed by LinkedIn Corporation.
         </p>
       </div>
     </div>
