@@ -431,14 +431,14 @@ function TranslatorApp({ trending = [] }: { trending?: TrendingTranslation[] }) 
 
       {/* Logo + Title — centered above the input like Google */}
       <div className="flex flex-col items-center mb-8">
-        <div className="flex items-center gap-3 mb-2">
+        <a href="/" className="flex items-center gap-3 mb-2 no-underline">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center">
             <span className="text-white font-bold text-sm tracking-tight">Li</span>
           </div>
           <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl text-text tracking-tight">
             LinkedIn Translate
           </h1>
-        </div>
+        </a>
         <p className="text-text-tertiary text-sm">
           What actually happened?
         </p>
@@ -638,6 +638,34 @@ function TranslatorApp({ trending = [] }: { trending?: TrendingTranslation[] }) 
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Random example chips — shown after a translation so users can keep going */}
+      {output && !loading && (
+        <div className="w-full max-w-2xl mt-5 flex flex-wrap justify-center gap-2">
+          {examples.map((example) => (
+            <button
+              key={example}
+              onClick={() => { setInput(example); setOutput(""); trackEvent("suggestion_chip", { example }); }}
+              className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200 max-w-[calc(50%-4px)] truncate"
+            >
+              {example}
+            </button>
+          ))}
+          <button
+            onClick={shuffleExamples}
+            className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200"
+            title="More examples"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="16 3 21 3 21 8" />
+              <line x1="4" y1="20" x2="21" y2="3" />
+              <polyline points="21 16 21 21 16 21" />
+              <line x1="15" y1="15" x2="21" y2="21" />
+              <line x1="4" y1="4" x2="9" y2="9" />
+            </svg>
+          </button>
         </div>
       )}
 
