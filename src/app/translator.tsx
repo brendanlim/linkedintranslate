@@ -436,25 +436,23 @@ function TranslatorApp() {
           </div>
         </div>
 
-        {/* Example chips — 2 rows: 2 per row */}
-        <div className="mt-5 grid grid-cols-2 gap-2 max-w-2xl items-center">
+        {/* Example chips — 2x2 grid + shuffle inline */}
+        <div className="mt-5 flex flex-wrap justify-center gap-2 max-w-2xl">
           {examples.map((example) => (
             <button
               key={example}
               onClick={() => { setInput(example); trackEvent("suggestion_chip", { example }); }}
-              className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200 truncate"
+              className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200 max-w-[calc(50%-4px)] truncate"
             >
               {example}
             </button>
           ))}
-        </div>
-        <div className="mt-2 flex justify-center">
           <button
             onClick={shuffleExamples}
-            className="p-1.5 text-text-tertiary hover:text-text-secondary transition-colors rounded-full"
+            className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200"
             title="More examples"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="16 3 21 3 21 8" />
               <line x1="4" y1="20" x2="21" y2="3" />
               <polyline points="21 16 21 21 16 21" />
