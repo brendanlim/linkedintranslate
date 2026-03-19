@@ -18,7 +18,7 @@ const siteUrl = "https://linkedintranslate.com";
 
 export const metadata: Metadata = {
   title: {
-    default: "LinkedIn Translate — Making r/LinkedInLunatics Proud",
+    default: "LinkedIn Translate — I'm Thrilled to Share...",
     template: "%s | LinkedIn Translate",
   },
   description:
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: siteUrl,
     siteName: "LinkedIn Translate",
-    title: "LinkedIn Translate — Making r/LinkedInLunatics Proud",
+    title: "LinkedIn Translate — I'm Thrilled to Share...",
     description:
       "Translate your career catastrophes into perfectly polished LinkedIn posts. Free AI-powered corporate jargon translator.",
     images: [
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "LinkedIn Translate — Making r/LinkedInLunatics Proud",
+    title: "LinkedIn Translate — I'm Thrilled to Share...",
     description:
       "Translate your career catastrophes into perfectly polished LinkedIn posts.",
     images: ["/og-image.png"],
