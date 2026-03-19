@@ -345,18 +345,36 @@ function TranslatorApp() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  async function getShortUrl(): Promise<string> {
+    try {
+      const res = await fetch("/api/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ q: input.trim(), t: output }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        return `${window.location.origin}/s/${data.id}`;
+      }
+    } catch {
+      // Fall back to compressed URL
+    }
+    return encodeShareUrl(window.location.origin, input.trim(), output);
+  }
+
   async function handleShareLink() {
     if (!output) return;
-    const shareUrl = await encodeShareUrl(window.location.origin, input.trim(), output);
+    const shareUrl = await getShortUrl();
     await navigator.clipboard.writeText(shareUrl);
     setLinkCopied(true);
     trackEvent("share_link");
     setTimeout(() => setLinkCopied(false), 2500);
   }
 
-  function handleShareLinkedIn() {
+  async function handleShareLinkedIn() {
     if (!output) return;
-    const postText = `${output}\n\n— Translated with linkedintranslate.com`;
+    const shortUrl = await getShortUrl();
+    const postText = `${output}\n\n— Translated with ${shortUrl}`;
     const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(postText)}`;
     window.open(linkedInUrl, "_blank", "noopener,noreferrer,width=600,height=700");
     trackEvent("share_linkedin");
