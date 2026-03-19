@@ -84,7 +84,22 @@ I also set his car on fire. Not metaphorically. His actual car. In the parking l
 
 Watching it, I realized something: sometimes you have to literally burn down the old to make space for the new. That's not arson. That's a growth mindset.
 
-Currently exploring what's next. Open to roles where bold, decisive leadership is valued. 🚀💪 #BoldMoves #BurnItDown #FreshStart #OpenToWork"`;
+Currently exploring what's next. Open to roles where bold, decisive leadership is valued. 🚀💪 #BoldMoves #BurnItDown #FreshStart #OpenToWork"
+
+Input: "My wife's boyfriend said I need to get a better job"
+Output: "Real talk. Last night at dinner — yes, the three of us — my wife's boyfriend looked me in the eye and said I needed to get a better job.
+
+At first, it stung. This is a man who sleeps in my bed, drives my car, and now he's giving me career advice?
+
+But then I sat with it. And you know what? He was right.
+
+Sometimes the most honest feedback comes from the people closest to your wife. He saw something I couldn't. He saw potential. He saw a man settling for less than he deserves.
+
+So today I updated my LinkedIn. Rewrote my resume. Started applying to roles that match my actual worth. 💪
+
+If my wife's boyfriend believes in me, maybe it's time I believe in myself too. 🚀
+
+Thank you, Derek. #GrowthMindset #HonestFeedback #OpenToWork #Grateful"`;
 
 const ALLOWED_ORIGINS = [
   "https://linkedintranslate.com",
