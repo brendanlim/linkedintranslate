@@ -111,6 +111,39 @@ function ShareIcon() {
 
 const MAX_LENGTH = 300;
 
+const LOADING_PHRASES = [
+  "Optimizing Vibe...",
+  "Synergizing...",
+  "Disrupting...",
+  "Unlocking Potential...",
+  "Circling Back...",
+  "Crushing It...",
+  "Moving the Needle...",
+  "Pivoting...",
+  "Building in Public...",
+  "Failing Forward...",
+  "Being Authentic...",
+  "Growth Mindset...",
+  "Adding Emojis...",
+  "Leaning In...",
+  "Unpacking This...",
+  "Doubling Down...",
+  "Living My Truth...",
+  "Personal Branding...",
+  "Ideating...",
+  "Maximizing Impact...",
+  "Hustle Mode...",
+  "Connecting Dots...",
+  "Aligning Values...",
+  "Thinking Bigger...",
+  "Manifesting...",
+  "Taking Ownership...",
+  "Leveling Up...",
+  "Staying Humble...",
+  "Adding Hashtags...",
+  "Being Vulnerable...",
+];
+
 const ALL_EXAMPLES = [
   "I got fired on my first day",
   "I lied on my resume about knowing Python",
@@ -248,6 +281,7 @@ function TranslatorApp() {
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [examples, setExamples] = useState<string[]>([]);
+  const [loadingPhrase, setLoadingPhrase] = useState(LOADING_PHRASES[0]);
   const [theme, setTheme] = useState<"dark" | "light">("light");
 
   // Init theme from localStorage (default: light)
@@ -271,6 +305,16 @@ function TranslatorApp() {
   useEffect(() => {
     shuffleExamples();
   }, []);
+
+  // Cycle loading phrases while translating
+  useEffect(() => {
+    if (!loading) return;
+    setLoadingPhrase(LOADING_PHRASES[Math.floor(Math.random() * LOADING_PHRASES.length)]);
+    const interval = setInterval(() => {
+      setLoadingPhrase(LOADING_PHRASES[Math.floor(Math.random() * LOADING_PHRASES.length)]);
+    }, 1800);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   function shuffleExamples() {
     const shuffled = [...ALL_EXAMPLES].sort(() => Math.random() - 0.5);
@@ -477,7 +521,7 @@ function TranslatorApp() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    <span className="animate-pulse-glow">Optimizing Vibe...</span>
+                    <span className="animate-pulse-glow">{loadingPhrase}</span>
                   </>
                 ) : (
                   "Translate"
