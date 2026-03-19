@@ -288,8 +288,9 @@ function TranslatorApp() {
     params.set("q", input.trim());
     params.set("t", output);
     const shareUrl = `${window.location.origin}?${params.toString()}`;
-    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
-    window.open(linkedInUrl, "_blank", "noopener,noreferrer,width=600,height=600");
+    const postText = `${output}\n\nTranslated with linkedintranslate.com\n${shareUrl}`;
+    const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(postText)}`;
+    window.open(linkedInUrl, "_blank", "noopener,noreferrer,width=600,height=700");
     trackEvent("share_linkedin");
   }
 
@@ -391,17 +392,19 @@ function TranslatorApp() {
           </div>
         </div>
 
-        {/* Example chips */}
-        <div className="mt-5 flex flex-wrap justify-center gap-2 items-center">
+        {/* Example chips — 2 rows: 2 per row */}
+        <div className="mt-5 grid grid-cols-2 gap-2 max-w-2xl items-center">
           {examples.map((example) => (
             <button
               key={example}
               onClick={() => { setInput(example); trackEvent("suggestion_chip", { example }); }}
-              className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200"
+              className="px-3.5 py-1.5 text-xs text-text-tertiary bg-transparent border border-border-subtle rounded-full hover:border-border hover:text-text-secondary transition-all duration-200 truncate"
             >
               {example}
             </button>
           ))}
+        </div>
+        <div className="mt-2 flex justify-center">
           <button
             onClick={shuffleExamples}
             className="p-1.5 text-text-tertiary hover:text-text-secondary transition-colors rounded-full"
