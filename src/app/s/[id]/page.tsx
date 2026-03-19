@@ -6,13 +6,19 @@ import ShareRedirect from "./redirect";
 const redis = Redis.fromEnv();
 const siteUrl = "https://linkedintranslate.com";
 
+function cleanText(text: string): string {
+  return text.replace(/\0/g, "").replace(/[^\P{C}\n]/gu, "").trim();
+}
+
 async function getShareData(
   id: string
 ): Promise<{ q: string; t: string } | null> {
   try {
-    const data = await redis.get<string>(`share:${id}`);
-    if (!data) return null;
-    return typeof data === "string" ? JSON.parse(data) : data;
+    const raw = await redis.get<{ q: string; t: string } | string>(`share:${id}`);
+    if (!raw) return null;
+    const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+    if (!data.q || !data.t) return null;
+    return { q: cleanText(data.q), t: cleanText(data.t) };
   } catch {
     return null;
   }

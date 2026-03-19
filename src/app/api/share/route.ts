@@ -4,9 +4,13 @@ import crypto from "crypto";
 
 const redis = Redis.fromEnv();
 
-// Generate a short 7-char ID
 function generateId(): string {
   return crypto.randomBytes(5).toString("base64url").slice(0, 7);
+}
+
+function cleanText(text: string): string {
+  // Strip null bytes and other control characters
+  return text.replace(/\0/g, "").replace(/[^\P{C}\n]/gu, "").trim();
 }
 
 // POST: save a translation and return a short ID
@@ -19,9 +23,11 @@ export async function POST(request: NextRequest) {
     }
 
     const id = generateId();
+    const cleanQ = cleanText(q);
+    const cleanT = cleanText(t);
 
-    // Store for 90 days
-    await redis.set(`share:${id}`, JSON.stringify({ q, t }), { ex: 90 * 24 * 60 * 60 });
+    // Store as object — Upstash SDK handles serialization
+    await redis.set(`share:${id}`, { q: cleanQ, t: cleanT }, { ex: 90 * 24 * 60 * 60 });
 
     return NextResponse.json({ id });
   } catch (error) {
@@ -39,14 +45,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Missing id" }, { status: 400 });
     }
 
-    const data = await redis.get<string>(`share:${id}`);
+    const data = await redis.get<{ q: string; t: string }>(`share:${id}`);
 
-    if (!data) {
+    if (!data || !data.q || !data.t) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    const parsed = typeof data === "string" ? JSON.parse(data) : data;
-    return NextResponse.json(parsed);
+    return NextResponse.json({
+      q: cleanText(data.q),
+      t: cleanText(data.t),
+    });
   } catch (error) {
     console.error("Share fetch error:", error);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
