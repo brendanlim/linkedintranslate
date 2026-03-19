@@ -663,7 +663,7 @@ function TranslatorApp({ trending = [] }: { trending?: TrendingTranslation[] }) 
           &copy; 2026 Brendan G. Lim
         </p>
         <p className="text-[10px] text-text-tertiary/30">
-          Not affiliated with or endorsed by LinkedIn Corporation.
+          Not affiliated with or endorsed by LinkedIn.
         </p>
       </div>
     </div>
