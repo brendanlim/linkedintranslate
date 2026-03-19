@@ -14,6 +14,43 @@ function trackEvent(eventName: string, params?: Record<string, string>) {
   gtag("event", eventName, params);
 }
 
+// ── URL compression: encode input+output into a compact base64 string ──
+
+async function encodeShareUrl(origin: string, q: string, t: string): Promise<string> {
+  const json = JSON.stringify({ q, t });
+  const bytes = new TextEncoder().encode(json);
+  const cs = new CompressionStream("deflate-raw");
+  const writer = cs.writable.getWriter();
+  writer.write(bytes);
+  writer.close();
+  const buf = await new Response(cs.readable).arrayBuffer();
+  const compressed = new Uint8Array(buf);
+  let b64 = btoa(String.fromCharCode(...compressed));
+  b64 = b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return `${origin}?s=${b64}`;
+}
+
+async function decodeShareParam(s: string): Promise<{ q: string; t: string } | null> {
+  try {
+    // Restore standard base64
+    let b64 = s.replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    const raw = atob(b64);
+    const bytes = Uint8Array.from(raw, (c) => c.charCodeAt(0));
+    const ds = new DecompressionStream("deflate-raw");
+    const writer = ds.writable.getWriter();
+    writer.write(bytes);
+    writer.close();
+    const buf = await new Response(ds.readable).arrayBuffer();
+    const json = new TextDecoder().decode(buf);
+    const data = JSON.parse(json);
+    if (data.q && data.t) return data;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function SunIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -217,12 +254,25 @@ function TranslatorApp() {
   }
 
   useEffect(() => {
-    const sharedInput = searchParams.get("q");
-    const sharedOutput = searchParams.get("t");
-    if (sharedInput) setInput(sharedInput);
-    if (sharedOutput) {
-      setOutput(sharedOutput);
-      trackEvent("shared_link_arrival", { content_length: sharedOutput.length.toString() });
+    // Support both legacy ?q=&t= and new compressed ?s= format
+    const s = searchParams.get("s");
+    const legacyQ = searchParams.get("q");
+    const legacyT = searchParams.get("t");
+
+    if (s) {
+      decodeShareParam(s).then((data) => {
+        if (data) {
+          setInput(data.q);
+          setOutput(data.t);
+          trackEvent("shared_link_arrival", { content_length: data.t.length.toString() });
+        }
+      });
+    } else if (legacyQ) {
+      setInput(legacyQ);
+      if (legacyT) {
+        setOutput(legacyT);
+        trackEvent("shared_link_arrival", { content_length: legacyT.length.toString() });
+      }
     }
   }, [searchParams]);
 
@@ -251,10 +301,11 @@ function TranslatorApp() {
       setOutput(data.translation);
       trackEvent("translate", { input_length: trimmed.length.toString() });
 
-      const params = new URLSearchParams();
-      params.set("q", trimmed);
-      params.set("t", data.translation);
-      router.replace(`?${params.toString()}`, { scroll: false });
+      // Update URL with compressed share param
+      encodeShareUrl(window.location.origin, trimmed, data.translation).then((url) => {
+        const shortParam = new URL(url).search;
+        router.replace(shortParam, { scroll: false });
+      });
     } catch {
       setError("Network error. Please check your connection.");
     } finally {
@@ -272,10 +323,7 @@ function TranslatorApp() {
 
   async function handleShareLink() {
     if (!output) return;
-    const params = new URLSearchParams();
-    params.set("q", input.trim());
-    params.set("t", output);
-    const shareUrl = `${window.location.origin}?${params.toString()}`;
+    const shareUrl = await encodeShareUrl(window.location.origin, input.trim(), output);
     await navigator.clipboard.writeText(shareUrl);
     setLinkCopied(true);
     trackEvent("share_link");
