@@ -399,16 +399,28 @@ function TranslatorApp({ trending = [] }: { trending?: TrendingTranslation[] }) 
     return `${window.location.origin}?q=${encodeURIComponent(input.trim())}&t=${encodeURIComponent(output)}`;
   }
 
-  async function handleShareLink() {
+  function handleShareLink() {
     if (!output) return;
-    const shortUrl = await getShortUrl();
-    // Use fallbackCopy because the async gap from getShortUrl()
-    // loses the user gesture needed for navigator.clipboard.writeText
-    fallbackCopy(shortUrl);
-    setLinkCopied(true);
-    trackEvent("share_link");
-    trackEngagement("share_link");
-    setTimeout(() => setLinkCopied(false), 2500);
+    // If we're already on a /s/ URL, copy it synchronously to preserve
+    // the user gesture context (required by mobile Safari for clipboard)
+    const currentId = getCurrentShareId();
+    if (currentId) {
+      const url = `${window.location.origin}/s/${currentId}`;
+      copyToClipboard(url);
+      setLinkCopied(true);
+      trackEvent("share_link");
+      trackEngagement("share_link");
+      setTimeout(() => setLinkCopied(false), 2500);
+    } else {
+      // No short URL yet — create one, then copy
+      getShortUrl().then((shortUrl) => {
+        fallbackCopy(shortUrl);
+        setLinkCopied(true);
+        trackEvent("share_link");
+        trackEngagement("share_link");
+        setTimeout(() => setLinkCopied(false), 2500);
+      });
+    }
   }
 
   async function handleShareLinkedIn() {
