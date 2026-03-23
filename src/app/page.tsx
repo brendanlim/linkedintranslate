@@ -3,6 +3,7 @@ import { Readable } from "stream";
 import { createInflateRaw } from "zlib";
 import { redirect } from "next/navigation";
 import { redis } from "@/lib/redis";
+import { isContentAllowed } from "@/lib/content-filter";
 import Translator from "./translator";
 
 const siteUrl = "https://linkedintranslate.com";
@@ -110,7 +111,8 @@ async function getTopTranslations(): Promise<
   { id: string; q: string; t: string }[]
 > {
   try {
-    const raw = await redis.zrange("leaderboard", 0, 9, {
+    // Over-fetch to account for filtered entries
+    const raw = await redis.zrange("leaderboard", 0, 29, {
       rev: true,
       withScores: true,
     });
@@ -129,9 +131,9 @@ async function getTopTranslations(): Promise<
     const results = await pipe.exec();
 
     const entries: { id: string; q: string; t: string }[] = [];
-    for (let i = 0; i < ids.length; i++) {
+    for (let i = 0; i < ids.length && entries.length < 10; i++) {
       const data = results[i] as { q: string; t: string } | null;
-      if (data?.q && data?.t) {
+      if (data?.q && data?.t && isContentAllowed(data.q)) {
         entries.push({ id: ids[i], q: data.q, t: data.t });
       }
     }
